@@ -25,7 +25,9 @@ async function boot() {
   if (DB.mode === "demo") $("#modeBadge").hidden = false;
   try { await DB.init("student"); }
   catch (e) { console.error(e); toast("서버 연결 실패: " + e.message, "err"); return; }
-  settings = await DB.getSettings();
+  const urlCode = new URLSearchParams(location.search).get("t");
+  $("#tcode").value = DB.normId(urlCode || localStorage.getItem("er_last_tcode") || "");
+  if (urlCode) $("#tcode").readOnly = true; // QR로 들어오면 코드가 이미 정해져 있음
 
   $("#sid").value = localStorage.getItem("er_last_sid") || "";
   $("#sname").value = localStorage.getItem("er_last_name") || "";
@@ -48,11 +50,17 @@ async function onLogin(e) {
   const level = $('input[name="level"]:checked').value;
   if (!/^\d{4,6}$/.test(sid)) return toast("학번은 숫자 4~6자리로 입력하세요.", "err");
   if (!name) return toast("이름을 입력하세요.", "err");
+  const tcode = DB.normId($("#tcode").value);
+  if (!DB.ID_RULE.test(tcode)) return toast("선생님 코드를 확인하세요.", "err");
+  localStorage.setItem("er_last_tcode", tcode);
   localStorage.setItem("er_last_sid", sid);
   localStorage.setItem("er_last_name", name);
   $("#loginBtn").disabled = true;
 
   try {
+    DB.setRoom(tcode);
+    if (!(await DB.roomExists())) { toast(`'${tcode}' 선생님 코드가 없어요. 다시 확인하세요.`, "err"); return; }
+    settings = await DB.getSettings();
     const prev = await DB.getPlayer(sid);
     if (prev && prev.status && prev.status !== "waiting") {
       me = prev;
@@ -87,7 +95,7 @@ function resume() {
 
 // ---------------------------------------------------------------- 대기
 function waitForOpen() {
-  $("#waitWho").textContent = `${me.id} ${me.name} · 난이도 ${lvName(me.level)}`;
+  $("#waitWho").textContent = `${settings.teacherName || ""} 반 · ${me.id} ${me.name} · 난이도 ${lvName(me.level)}`;
   if (settings.open) return intro();
   show("scr-wait");
   const off = DB.watchSettings((s) => {

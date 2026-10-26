@@ -19,17 +19,41 @@ async function boot() {
   if (DB.mode === "demo") { $("#modeBadge").hidden = false; $("#modeBadge2").hidden = false; $("#demoTip").hidden = false; }
   try { await DB.init("teacher"); }
   catch (e) { console.error(e); toast("서버 연결 실패: " + e.message, "err"); return; }
-  if (await DB.isTeacher()) return startApp();
+  const me = await DB.currentTeacher();
+  if (me) { DB.setRoom(me); return startApp(); }
+
+  $("#tId").value = localStorage.getItem("er_last_teacher") || "";
+  $("#toSignup").onclick = (e) => { e.preventDefault(); $("#tLoginForm").hidden = true; $("#tSignupForm").hidden = false; $("#sgId").focus(); };
+  $("#toLogin").onclick = (e) => { e.preventDefault(); $("#tSignupForm").hidden = true; $("#tLoginForm").hidden = false; };
+
   $("#tLoginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (await DB.teacherLogin($("#tPw").value)) startApp();
-    else { toast("비밀번호가 틀렸습니다.", "err"); $("#tPw").select(); }
+    const btn = e.submitter; if (btn) btn.disabled = true;
+    const r = await DB.teacherLogin($("#tId").value, $("#tPw").value);
+    if (btn) btn.disabled = false;
+    if (!r.ok) { toast(r.msg, "err"); $("#tPw").select(); return; }
+    localStorage.setItem("er_last_teacher", DB.getRoom());
+    startApp();
+  });
+
+  $("#tSignupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if ($("#sgPw").value !== $("#sgPw2").value) return toast("비밀번호 확인이 다릅니다.", "err");
+    const btn = e.submitter; if (btn) btn.disabled = true;
+    const r = await DB.teacherSignup({ id: $("#sgId").value, name: $("#sgName").value.trim(), password: $("#sgPw").value, code: $("#sgCode").value.trim() });
+    if (btn) btn.disabled = false;
+    if (!r.ok) return toast(r.msg, "err");
+    localStorage.setItem("er_last_teacher", DB.getRoom());
+    toast(`등록 완료! 선생님 코드는 '${DB.getRoom()}' 입니다.`);
+    startApp();
   });
 }
 
 async function startApp() {
   $("#t-login").hidden = true;
   $("#t-app").hidden = false;
+  $("#roomBadge").textContent = "선생님 코드: " + DB.getRoom();
+  $("#studentLink").href = "student.html?t=" + encodeURIComponent(DB.getRoom());
 
   $$(".tabs button").forEach((b) => b.addEventListener("click", () => {
     $$(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
@@ -137,7 +161,9 @@ function renderDash() {
 
 // 지금 주소(Vercel/GitHub Pages)에서 student.html 주소를 만들어 QR로 크게 띄움
 async function showQr() {
-  const url = new URL("student.html", location.href).href;
+  const u = new URL("student.html", location.href);
+  u.searchParams.set("t", DB.getRoom());
+  const url = u.href;
   try {
     if (!window.QRCode) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js");
     $("#qrBox").innerHTML = "";

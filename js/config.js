@@ -11,16 +11,21 @@ export const CONFIG = {
   // ---------------------------------------------------------------
   firebase: {
     apiKey: "AIzaSyDw5v9HkqGL1KEQAnrg3dK53cbn-yVSAiw",
-       authDomain: "math-escape-24f00.firebaseapp.com",
-       projectId: "math-escape-24f00",
-       storageBucket: "math-escape-24f00.firebasestorage.app",
-       messagingSenderId: "1025185129802",
-       appId: "1:1025185129802:web:fd490b82b376648e090db3",
+    authDomain: "math-escape-24f00.firebaseapp.com",
+    projectId: "math-escape-24f00",
+    storageBucket: "math-escape-24f00.firebasestorage.app",
+    messagingSenderId: "1025185129802",
+    appId: "1:1025185129802:web:fd490b82b376648e090db3",
   },
 
-  // Firebase Authentication 에 만든 '교사 계정' 이메일
-  // (교사 페이지에서는 비밀번호만 입력하면 됩니다)
-  teacherEmail: "teacher@dongin.escape",
+  // 선생님 아이디 뒤에 붙는 가짜 이메일 주소 끝부분
+  // (아이디 teacher → 내부적으로 teacher@dongin.escape 로 로그인)
+  // ★ firestore.rules 안의 "@dongin.escape" 와 반드시 같아야 합니다.
+  idDomain: "dongin.escape",
+
+  // 새 선생님이 사이트에서 직접 등록할 때 입력하는 '가입 코드'
+  // 함께 쓸 선생님께만 알려 주세요. 원하는 말로 바꿔도 됩니다.
+  signupCode: "dongin2026",
 
   // DEMO 모드일 때 교사 비밀번호
   demoTeacherPassword: "1234",
