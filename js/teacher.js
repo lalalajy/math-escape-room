@@ -19,8 +19,20 @@ async function boot() {
   if (DB.mode === "demo") { $("#modeBadge").hidden = false; $("#modeBadge2").hidden = false; $("#demoTip").hidden = false; }
   try { await DB.init("teacher"); }
   catch (e) { console.error(e); toast("서버 연결 실패: " + e.message, "err"); return; }
+  // 이미 로그인되어 있으면 바로 들어가지 않고 확인부터 (같은 PC를 여러 선생님이 쓸 수 있으므로)
   const me = await DB.currentTeacher();
-  if (me) { DB.setRoom(me); return startApp(); }
+  if (me) {
+    $("#tLoginForm").hidden = true;
+    $("#tContinue").hidden = false;
+    $("#contId").textContent = me;
+    $("#contGo").onclick = () => { DB.setRoom(me); startApp(); };
+    $("#contOther").onclick = async () => {
+      await DB.teacherLogout();
+      $("#tContinue").hidden = true;
+      $("#tLoginForm").hidden = false;
+      $("#tId").value = ""; $("#tId").focus();
+    };
+  }
 
   $("#tId").value = localStorage.getItem("er_last_teacher") || "";
   $("#toSignup").onclick = (e) => { e.preventDefault(); $("#tLoginForm").hidden = true; $("#tSignupForm").hidden = false; $("#sgId").focus(); };

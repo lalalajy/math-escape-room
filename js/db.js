@@ -52,6 +52,8 @@ export async function teacherLogin(id, password) {
   if (!ID_RULE.test(id)) return { ok: false, msg: "아이디는 영문 소문자·숫자 3~12자예요." };
   if (mode === "firebase") {
     try {
+      // 브라우저를 닫으면 로그인이 풀리도록 (교실 PC를 여러 선생님이 함께 쓰는 경우 대비)
+      await fb.au.setPersistence(fb.auth, fb.au.browserSessionPersistence);
       await fb.au.signInWithEmailAndPassword(fb.auth, idToEmail(id), password);
     } catch (e) {
       console.warn(e);
@@ -73,6 +75,7 @@ export async function teacherSignup({ id, name, password, code }) {
   if (!password || password.length < 6) return { ok: false, msg: "비밀번호는 6자 이상이어야 해요." };
   if (mode === "firebase") {
     try {
+      await fb.au.setPersistence(fb.auth, fb.au.browserSessionPersistence);
       await fb.au.createUserWithEmailAndPassword(fb.auth, idToEmail(id), password);
     } catch (e) {
       console.warn(e);

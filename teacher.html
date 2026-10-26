@@ -10,6 +10,14 @@
 
   <!-- 로그인 -->
   <section id="t-login" class="center">
+    <div class="card login" id="tContinue" hidden>
+      <span class="exit-sign">🧑‍🏫 TEACHER</span>
+      <h2>이미 로그인되어 있어요</h2>
+      <p>선생님 코드 <b class="mono" id="contId" style="color:var(--exit)"></b> (으)로 로그인된 상태입니다.</p>
+      <button class="btn big" style="width:100%" id="contGo">이대로 입장</button>
+      <button class="btn ghost" style="width:100%;margin-top:10px" id="contOther">다른 아이디로 로그인</button>
+    </div>
+
     <form class="card login" id="tLoginForm" autocomplete="on">
       <span class="exit-sign">🧑‍🏫 TEACHER</span> <span class="badge demo" id="modeBadge" hidden>DEMO 모드</span>
       <h2>교사 로그인</h2>
