@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>수학 방탈출 — 학생</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="fx-vignette"></div><div class="fx-scan"></div><div class="fx-flicker"></div>
+
+  <!-- 1. 로그인 -->
+  <section class="screen active" id="scr-login">
+    <div class="center">
+      <form class="card login" id="loginForm" autocomplete="off">
+        <span class="exit-sign">🏃 EXIT</span> <span class="badge demo" id="modeBadge" hidden>DEMO 모드</span>
+        <h2>입장하기</h2>
+        <p class="muted" style="margin-top:0">학번과 이름을 입력하세요. 이름은 자유롭게 정해도 돼요.</p>
+        <label class="field"><span>학번</span>
+          <input class="input" id="sid" inputmode="numeric" maxlength="6" placeholder="예: 30215" required />
+        </label>
+        <label class="field"><span>이름 (닉네임)</span>
+          <input class="input" id="sname" maxlength="12" placeholder="예: 탈출왕" required />
+        </label>
+        <div class="field"><span>난이도</span>
+          <div class="levels">
+            <label><input type="radio" name="level" value="mid" checked /><b>중</b><small>층마다 자물쇠 2개</small></label>
+            <label><input type="radio" name="level" value="high" /><b>상</b><small>층마다 자물쇠 1개</small></label>
+          </div>
+        </div>
+        <button class="btn big" style="width:100%;margin-top:8px" id="loginBtn">눈을 뜬다…</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. 대기 -->
+  <section class="screen" id="scr-wait">
+    <div class="center"><div class="waiting">
+      <div class="spinner"></div>
+      <h2 style="font-family:var(--title);font-size:30px;margin:0">의식이 흐릿하다…</h2>
+      <p class="muted">선생님이 게임을 시작하면 자동으로 깨어납니다.</p>
+      <p class="mono" id="waitWho"></p>
+    </div></div>
+  </section>
+
+  <!-- 3. 인트로 -->
+  <section class="screen" id="scr-intro">
+    <div class="intro-wrap">
+      <div id="introText"></div>
+      <div id="noteWrap" hidden>
+        <div class="note" id="note"></div>
+        <div style="text-align:center;margin-top:34px">
+          <button class="btn red big" id="startBtn">⏱ 탈출 시작</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn ghost small skip" id="skipBtn">건너뛰기 ▸▸</button>
+  </section>
+
+  <!-- 4. 게임 -->
+  <section class="screen" id="scr-game">
+    <header class="hud">
+      <div class="loc" id="hudLoc">지하 1층 <small>소학실</small></div>
+      <div class="spacer"></div>
+      <div class="who" id="hudWho"></div>
+      <div class="badge" id="hudProg">🔓 0/10</div>
+      <button class="btn ghost small" id="muteBtn" title="소리">🔊</button>
+      <div class="timer" id="hudTimer">50:00</div>
+    </header>
+    <div class="game">
+      <aside class="building">
+        <h4>BUILDING MAP</h4>
+        <div id="floors"></div>
+      </aside>
+      <section class="door-panel">
+        <div class="door-head">
+          <h3 id="doorTitle">방화문 B1 → 1F</h3>
+          <div class="locks" id="locks"></div>
+        </div>
+        <div class="puzzle">
+          <div class="puzzle-img" id="pImg" title="클릭하면 크게 보기"></div>
+          <form class="answer-row" id="ansForm" autocomplete="off">
+            <input class="input" id="ansInput" placeholder="정답 입력" />
+            <button class="btn" id="ansBtn">🔑 열기</button>
+          </form>
+          <div class="answer-tip">숫자만 입력해요. 분수는 1/2, 음수는 -3 처럼 입력하세요. 객관식은 번호만.</div>
+          <div style="margin-top:12px"><button class="btn ghost small" id="hintBtn" hidden>💡 힌트 보기</button></div>
+          <div class="hint-box" id="hintBox" hidden></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- 5. 휴대폰 -->
+  <section class="screen" id="scr-phone">
+    <header class="hud">
+      <div class="loc">5층 <small>학생 자율공간</small></div>
+      <div class="spacer"></div>
+      <div class="timer" id="hudTimer2">--:--</div>
+    </header>
+    <div class="center" style="min-height:calc(100vh - 60px)">
+      <div>
+        <p class="mono" style="text-align:center;color:var(--amber)">배터리가 얼마 남지 않았다. 도움을 요청하자!</p>
+        <div class="phone" id="phone">
+          <div class="screen-in">
+            <div class="status"><span id="phClock">--:--</span><span class="battery">▮ 2%</span></div>
+            <div class="display" id="phDisplay"></div>
+            <div class="sub" id="phSub">긴급 전화</div>
+            <div class="pad" id="pad"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 결과 -->
+  <section class="screen" id="scr-end">
+    <div class="center"><div class="result" id="endBox"></div></div>
+  </section>
+
+  <!-- 문 열림 -->
+  <div class="overlay" id="doorOv">
+    <div class="ov-box">
+      <div class="firedoor" id="fireDoor"><div class="frame"></div><div class="leaf l"></div><div class="leaf r"></div></div>
+      <p class="ov-title" id="ovTitle">철컥—!</p>
+      <div id="ovStory"></div>
+      <div style="margin-top:24px"><button class="btn big" id="ovNext" hidden>계단을 오른다 ▲</button></div>
+    </div>
+  </div>
+
+  <div class="zoom" id="zoom"><img alt="문제 확대" /></div>
+
+  <script type="module" src="js/student.js"></script>
+</body>
+</html>

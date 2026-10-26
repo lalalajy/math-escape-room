@@ -1,0 +1,30 @@
+rules_version = '2';
+// Firebase 콘솔 > Firestore Database > 규칙(Rules) 탭에 통째로 붙여넣고 [게시]
+// ★ 아래 이메일을 js/config.js 의 teacherEmail 과 똑같이 바꾸세요.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isTeacher() { return signedIn() && request.auth.token.email == "teacher@dongin.escape"; }
+
+    // 게임 설정 (입장 열기/닫기, 제한시간 등)
+    match /escape/{doc} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    // 문제 이미지 + 정답 해시 (학생은 읽기만)
+    match /problems/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    // 정답 원문 — 교사만
+    match /answerKeys/{id} {
+      allow read, write: if isTeacher();
+    }
+    // 학생 진행 기록
+    match /players/{id} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && id.matches('^[0-9]{4,6}$');
+      allow delete: if isTeacher();
+    }
+  }
+}
