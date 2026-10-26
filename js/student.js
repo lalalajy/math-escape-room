@@ -16,6 +16,14 @@ let problems = {};            // id → problem
 let curLock = 0;              // 현재 보고 있는 자물쇠(plan 인덱스)
 let timerIv = null, hbIv = null, lockUntil = 0, ended = false;
 
+// 배경 장면: school(밤 학교) · hall(복도, 층마다 조명) · dawn(탈출) · dead(시간 초과) · black
+function setScene(name, floor) {
+  document.body.dataset.scene = name;
+  if (floor !== undefined) document.body.dataset.floor = String(floor);
+}
+const plaque = (f) => `<span class="plaque"><small>${esc(f.code)}</small>${esc(f.place)}</span>`;
+const LOCK_SVG = `<svg class="padlock" viewBox="0 0 40 48" aria-hidden="true"><path class="shackle" d="M11 22V14a9 9 0 0 1 18 0v8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><rect x="4" y="21" width="32" height="25" rx="4" fill="currentColor"/><circle cx="20" cy="31" r="3.6" fill="#000" opacity=".55"/><rect x="18.5" y="32" width="3" height="7" rx="1.3" fill="#000" opacity=".55"/></svg>`;
+
 const show = (id) => $$(".screen").forEach((s) => s.classList.toggle("active", s.id === id));
 const save = (patch) => { Object.assign(me, patch); return DB.savePlayer(me.id, { ...patch, lastSeen: Date.now() }).catch((e) => { console.error(e); toast("저장 실패 — 인터넷 연결을 확인하세요.", "err"); }); };
 
@@ -38,6 +46,9 @@ async function boot() {
   $("#ansForm").addEventListener("submit", onAnswer);
   $("#hintBtn").addEventListener("click", onHint);
   $("#ansInput").addEventListener("keydown", () => sfx.key());
+  const torch = (x, y) => { document.body.style.setProperty("--mx", x + "px"); document.body.style.setProperty("--my", y + "px"); };
+  window.addEventListener("pointermove", (e) => torch(e.clientX, e.clientY), { passive: true });
+  window.addEventListener("touchmove", (e) => torch(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
   document.addEventListener("visibilitychange", () => { if (me && !document.hidden) save({}); });
 }
 
@@ -107,6 +118,7 @@ function waitForOpen() {
 // ---------------------------------------------------------------- 인트로
 async function intro() {
   show("scr-intro");
+  setScene("school");
   const box = $("#introText");
   box.textContent = ""; box.classList.remove("big");
   $("#noteWrap").hidden = true;
@@ -118,6 +130,7 @@ async function intro() {
   await typewriter(box, "학교를 마치고 학원으로 가던 길이었다.\n해가 지고, 골목은 이상할 만큼 조용했다.\n\n뒤에서… 누군가 따라오는 발소리.");
   await wait(900);
   box.textContent = "쿵!"; box.classList.add("big");
+  setScene("black");
   if (!skipped) {
     sfx.thud();
     document.body.classList.add("shake");
@@ -127,6 +140,7 @@ async function intro() {
   await wait(1400);
   box.classList.remove("big"); box.textContent = "";
   await wait(1200);
+  setScene("hall", 0);
   await typewriter(box, `………\n\n차가운 바닥. 퀴퀴한 먼지 냄새.\n천천히 눈을 떠 보니… 여기는\n\n${CONFIG.schoolName} ${CONFIG.startRoom}?\n\n문은 모두 잠겨 있다.\n문에 종이 한 장이 붙어 있다.`);
   await wait(700);
 
@@ -192,6 +206,7 @@ async function enterGame() {
   startTimer();
   if (me.floor >= DOORS || me.status === "phone") return phoneScene();
   show("scr-game");
+  setScene("hall", me.floor);
   renderBuilding();
   renderDoor();
 }
@@ -249,11 +264,12 @@ function doorIndices(d = me.floor) {
 function renderDoor() {
   const d = me.floor;
   $("#doorTitle").textContent = `방화문 ${FLOORS[d].code} → ${FLOORS[d + 1].code}`;
+  $("#doorPlaque").outerHTML = plaque(FLOORS[d]).replace('class="plaque"', 'class="plaque" id="doorPlaque"');
   const idxs = doorIndices(d);
   if (!idxs.includes(curLock) || me.solved.includes(curLock)) curLock = idxs.find((i) => !me.solved.includes(i)) ?? idxs[0];
   $("#locks").innerHTML = idxs.map((i, n) => {
     const open = me.solved.includes(i);
-    return `<span class="lock ${open ? "open" : ""} ${i === curLock && !open ? "sel" : ""}" data-i="${i}">${open ? "🔓" : "🔒"} 자물쇠 ${n + 1}</span>`;
+    return `<span class="lock ${open ? "open" : ""} ${i === curLock && !open ? "sel" : ""}" data-i="${i}">${LOCK_SVG} 자물쇠 ${n + 1}</span>`;
   }).join("");
   $$("#locks .lock").forEach((el) => el.addEventListener("click", () => {
     const i = Number(el.dataset.i);
@@ -297,7 +313,7 @@ async function onAnswer(e) {
     const solved = [...me.solved, curLock];
     await save({ solved });
     const el = $(`#locks .lock[data-i="${curLock}"]`);
-    if (el) { el.classList.add("open", "pop"); el.textContent = "🔓 열림"; }
+    if (el) { el.classList.add("open", "pop"); el.lastChild.textContent = " 열림"; }
     sfx.lockOpen();
     await sleep(650);
     if (doorIndices().every((i) => me.solved.includes(i))) return openDoor();
@@ -330,12 +346,15 @@ async function openDoor() {
   const ov = $("#doorOv"), door = $("#fireDoor");
   door.classList.remove("open");
   $("#ovTitle").textContent = "철컥— 방화문이 열렸다!";
+  $("#ovPlace").innerHTML = plaque(FLOORS[next]);
+  $("#fireDoor .frame").style.filter = next >= DOORS ? "hue-rotate(75deg) brightness(1.2)" : "";
   $("#ovStory").textContent = "";
   $("#ovNext").hidden = true;
   ov.classList.add("show");
   sfx.door();
   await sleep(250);
   door.classList.add("open");
+  setScene("hall", next);
   await sleep(1500);
   await typewriter($("#ovStory"), FLOORS[next].story || `${FLOORS[next].name}에 도착했다.`, 32);
   $("#ovNext").textContent = next >= DOORS ? "휴대폰을 집어 든다 📱" : `${FLOORS[next].name} 탐색 ▲`;
@@ -351,6 +370,7 @@ async function openDoor() {
 // ---------------------------------------------------------------- 휴대폰
 function phoneScene() {
   show("scr-phone");
+  setScene("hall", FLOORS.length - 1);
   let num = "";
   const disp = $("#phDisplay"), sub = $("#phSub");
   const d = new Date();
@@ -401,6 +421,8 @@ function showEnd() {
   document.body.classList.remove("danger");
   show("scr-end");
   const win = me.status === "escaped";
+  setScene(win ? "dawn" : "dead");
+  document.body.classList.toggle("escaped", win);
   const used = (me.finishedAt || Date.now()) - me.startedAt + (me.penaltyMs || 0);
   const floorName = FLOORS[Math.min(me.floor, FLOORS.length - 1)].name;
   $("#endBox").innerHTML = win ? `

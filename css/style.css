@@ -397,3 +397,105 @@ textarea.input { min-height: 70px; font-size: 15px; color: var(--text); }
 
 .settings { max-width: 560px; }
 .note-box { background: #151000; border: 1px solid #3a2e00; color: #f0d8a0; padding: 12px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+
+/* =====================================================================
+   장면(학교 사진 배경) — body[data-scene] 로 바뀜
+   ===================================================================== */
+#scene {
+  position: fixed; inset: -4%; z-index: 0; pointer-events: none;
+  background: #000 center / cover no-repeat; opacity: 0;
+  transition: opacity 1.6s ease, filter 2.2s ease;
+  animation: drift 45s ease-in-out infinite alternate;
+}
+@keyframes drift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.07) translate(-1.2%, -1%); } }
+body[data-scene="school"] #scene { background-image: url(../img/school_night.jpg); opacity: 1; }
+body[data-scene="hall"] #scene   { background-image: url(../img/hall_dark.jpg); opacity: 1; }
+body[data-scene="dawn"] #scene   { background-image: url(../img/school_dawn.jpg); opacity: 1; }
+body[data-scene="dead"] #scene   { background-image: url(../img/hall_dark.jpg); opacity: .4; filter: hue-rotate(-120deg) saturate(2.2) brightness(.45); }
+/* 층마다 다른 조명 */
+body[data-scene="hall"][data-floor="0"] #scene { filter: hue-rotate(-118deg) saturate(1.9) brightness(.75); }   /* 지하: 붉은 비상등 */
+body[data-scene="hall"][data-floor="1"] #scene { filter: none; }                                                /* 초록 비상구등 */
+body[data-scene="hall"][data-floor="2"] #scene { filter: hue-rotate(15deg) brightness(.9); }
+body[data-scene="hall"][data-floor="3"] #scene { filter: hue-rotate(-55deg) saturate(.8) brightness(1.05); }   /* 누런 형광등 */
+body[data-scene="hall"][data-floor="4"] #scene { filter: hue-rotate(45deg) brightness(1.05); }
+body[data-scene="hall"][data-floor="5"] #scene { filter: hue-rotate(75deg) brightness(1.2); }                  /* 새벽빛 */
+
+/* 손전등: 마우스(손가락)를 따라 밝아짐 */
+#torch {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1.2s;
+  background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 42%), rgba(255,250,220,.06) 0, transparent 40%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.85) 100%);
+}
+body[data-scene="hall"] #torch { opacity: 1; }
+
+/* 탈출 성공: 경찰차 불빛 */
+#police { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; }
+body.escaped #police { opacity: 1; animation: police 1.1s steps(1) infinite; }
+@keyframes police {
+  0%   { background: radial-gradient(ellipse 60% 45% at 12% 100%, rgba(255,30,30,.5), transparent 70%); }
+  50%  { background: radial-gradient(ellipse 60% 45% at 88% 100%, rgba(40,100,255,.5), transparent 70%); }
+}
+
+.screen { position: relative; z-index: 2; }
+#scr-intro { background: transparent; }
+#introText { text-shadow: 0 2px 10px #000, 0 0 3px #000; }
+.card { background: linear-gradient(180deg, rgba(18,24,27,.86), rgba(10,14,16,.92)); backdrop-filter: blur(4px); }
+.landing .choose a { background: rgba(14,20,22,.78); backdrop-filter: blur(3px); }
+.waiting, .result { text-shadow: 0 2px 10px #000; }
+.result .stats div { background: rgba(14,20,22,.8); }
+
+/* ---------- 철제 방화문 패널 ---------- */
+.door-panel {
+  position: relative;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px),
+    linear-gradient(90deg, #26292b, #3a3f42 48%, #2c3033 52%, #26292b);
+  border: 7px solid #15171a; border-radius: 3px;
+  box-shadow: inset 0 0 0 2px #4b5155, inset 0 0 60px rgba(0,0,0,.6), 0 30px 90px rgba(0,0,0,.85);
+}
+.door-panel::after { /* 문 아래쪽 패닉바 */
+  content: ""; position: absolute; left: 8%; right: 8%; bottom: 14px; height: 14px; border-radius: 7px;
+  background: linear-gradient(#9aa2a7, #5d6468); box-shadow: 0 3px 6px rgba(0,0,0,.6);
+}
+.door-panel .puzzle { padding-bottom: 46px; }
+.door-head {
+  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.15)), repeating-linear-gradient(-45deg, #2a2100 0 14px, #120e00 14px 28px);
+  border-bottom: 2px solid #3a2e00;
+}
+.plaque { /* 학교 교실 명패 */
+  display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15;
+  background: linear-gradient(#21458f, #152f68); color: #fff; border: 2px solid #c6d2ea; border-radius: 3px;
+  padding: 4px 16px 5px; font-weight: 900; font-size: 18px; box-shadow: 0 5px 12px rgba(0,0,0,.6);
+}
+.plaque small { font-size: 10px; font-weight: 700; letter-spacing: .15em; opacity: .8; }
+.door-head h3 { font-size: 20px; }
+
+/* 문에 테이프로 붙인 종이 */
+.puzzle-img { border-radius: 2px; transform: rotate(-.35deg); background: #fbfaf5; box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 14px 30px rgba(0,0,0,.6); }
+.puzzle-img::before, .puzzle-img::after {
+  content: ""; position: absolute; top: -10px; width: 80px; height: 22px; background: rgba(230,226,200,.6);
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.puzzle-img::before { left: 18px; transform: rotate(-4deg); }
+.puzzle-img::after { right: 18px; transform: rotate(3deg); }
+
+/* 자물쇠 그림 */
+.lock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 8px; }
+.padlock { width: 20px; height: 24px; color: var(--red); filter: drop-shadow(0 0 4px rgba(255,59,59,.5)); }
+.padlock .shackle { transform-box: view-box; transform-origin: 29px 22px; transition: transform .45s cubic-bezier(.3,1.6,.5,1); }
+.lock.open .padlock { color: var(--exit); filter: drop-shadow(0 0 4px rgba(34,224,122,.6)); }
+.lock.open .padlock .shackle { transform: translateY(-5px) rotate(28deg); }
+
+/* 문 열림 연출: 문 너머로 다음 층 복도가 보임 */
+.firedoor .frame { background: #000 url(../img/hall_view.jpg) center / cover; }
+.firedoor.open .frame { animation: lightin 1.6s ease forwards; }
+@keyframes lightin { from { filter: brightness(.2); } to { filter: brightness(1); } }
+
+/* 장소 카드 (층 이동 시) */
+.ov-place { display: inline-block; margin-bottom: 14px; }
+body > .center { position: relative; z-index: 2; }
+/* 효과 레이어는 배경 위·내용 아래에 (문제 종이가 어둡게 가려지지 않도록) */
+.fx-vignette, .fx-scan { z-index: 1; }
+.ov-place { display: block; }
+#ovStory { margin-top: 4px; }
+body[data-scene="hall"][data-floor="0"] #scene { filter: hue-rotate(-118deg) saturate(1.9) brightness(1); }
+#torch { background: radial-gradient(circle 300px at var(--mx, 50%) var(--my, 42%), rgba(255,250,220,.07) 0, transparent 42%, rgba(0,0,0,.45) 78%, rgba(0,0,0,.72) 100%); }

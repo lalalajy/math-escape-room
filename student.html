@@ -6,7 +6,8 @@
   <title>수학 방탈출 — 학생</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-scene="school">
+  <div id="scene"></div><div id="torch"></div><div id="police"></div>
   <div class="fx-vignette"></div><div class="fx-scan"></div><div class="fx-flicker"></div>
 
   <!-- 1. 로그인 -->
@@ -77,6 +78,7 @@
       </aside>
       <section class="door-panel">
         <div class="door-head">
+          <span class="plaque" id="doorPlaque"><small>B1</small>소학실</span>
           <h3 id="doorTitle">방화문 B1 → 1F</h3>
           <div class="locks" id="locks"></div>
         </div>
@@ -126,6 +128,7 @@
     <div class="ov-box">
       <div class="firedoor" id="fireDoor"><div class="frame"></div><div class="leaf l"></div><div class="leaf r"></div></div>
       <p class="ov-title" id="ovTitle">철컥—!</p>
+      <div class="ov-place" id="ovPlace"></div>
       <div id="ovStory"></div>
       <div style="margin-top:24px"><button class="btn big" id="ovNext" hidden>계단을 오른다 ▲</button></div>
     </div>
