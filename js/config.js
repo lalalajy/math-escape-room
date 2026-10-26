@@ -10,12 +10,12 @@ export const CONFIG = {
   //    DEMO 모드 = 한 컴퓨터의 같은 브라우저 안에서만 데이터 공유(테스트용)
   // ---------------------------------------------------------------
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: "",
+    apiKey: "AIzaSyDw5v9HkqGL1KEQAnrg3dK53cbn-yVSAiw",
+       authDomain: "math-escape-24f00.firebaseapp.com",
+       projectId: "math-escape-24f00",
+       storageBucket: "math-escape-24f00.firebasestorage.app",
+       messagingSenderId: "1025185129802",
+       appId: "1:1025185129802:web:fd490b82b376648e090db3",
   },
 
   // Firebase Authentication 에 만든 '교사 계정' 이메일
